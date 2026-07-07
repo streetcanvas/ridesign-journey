@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Riddhibrata — SaaS UX Designer</title>
+<meta name="description" content="Riddhibrata is a SaaS UX designer crafting seamless product journeys. Scroll to cross the bridge and explore the work." />
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://db.onlinewebfonts.com/c/6e47ef470dd19698c911332a9b4d1cf4?family=Neue+Haas+Grotesk+Text+Pro" rel="stylesheet" />
+<link href="https://db.onlinewebfonts.com/c/dec0d9b4e22ca588dc20e1e2e09a59b5?family=Neue+Haas+Grotesk+Display+Pro+55+Roman" rel="stylesheet" />
+
+<!-- Tailwind (Play CDN) -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- lucide icons -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<!-- GSAP + ScrollTrigger (scroll-driven journey) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<style>
+  :root {
+    --ink: #1f2a1d;
+    --deep: #24402c;
+    --green: #336443;
+    --sage: #85AB8B;
+    --moss: #4b5b47;
+    --cream: #f2efe6;
+    --sand: #e7e3d2;
+    --gold: #d9b36a;
+  }
+  html { scroll-behavior: smooth; }
+  html, body {
+    margin: 0;
+    background: var(--cream);
+    font-family: 'Inter', 'Neue Haas Grotesk Text Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .display-font {
+    font-family: 'Neue Haas Grotesk Display Pro 55 Roman', 'Neue Haas Grotesk Text Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    letter-spacing: -0.035em;
+  }
+  /* Elements revealed on scroll (JS removes the hidden state; visible by default if JS fails) */
+  .reveal { will-change: transform, opacity; }
+
+  /* Scroll-down hint */
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+  .bob { animation: bob 1.8s ease-in-out infinite; }
+
+  /* Drifting mist */
+  @keyframes drift {
+    0%   { transform: translateX(-6%); }
+    50%  { transform: translateX(6%); }
+    100% { transform: translateX(-6%); }
+  }
+  .mist { animation: drift 26s ease-in-out infinite; will-change: transform; }
+  .mist.slow { animation-duration: 40s; }
+
+  /* Fireflies (Experiments valley) */
+  @keyframes firefly {
+    0%, 100% { opacity: 0.1; transform: translate(0, 0) scale(0.8); }
+    25% { opacity: 0.9; transform: translate(14px, -18px) scale(1); }
+    50% { opacity: 0.3; transform: translate(-10px, -34px) scale(0.9); }
+    75% { opacity: 0.8; transform: translate(10px, -12px) scale(1.05); }
+  }
+  .firefly {
+    position: absolute;
+    width: 5px; height: 5px;
+    border-radius: 9999px;
+    background: var(--gold);
+    box-shadow: 0 0 12px 3px rgba(217, 179, 106, 0.55);
+    animation: firefly 9s ease-in-out infinite;
+  }
+
+  /* Sun glow */
+  .sun-glow { box-shadow: 0 0 120px 60px rgba(217, 179, 106, 0.35); }
+
+  /* ------------------------------------------------------------
+     SCENES — each valley section carries a full-bleed cinematic
+     photo behind its content. The image dissolves in as the
+     section arrives and slowly zooms (Ken Burns) while you read.
+  ------------------------------------------------------------ */
+  .scene-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .scene-img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transform: scale(1.15);
+    will-change: transform, opacity;
+  }
+  /* Fallback when JS/GSAP is unavailable: scene still looks composed */
+  .no-motion .scene-img { transform: none; opacity: 1; }
+
+  /* Case-study card hover lift */
+  .lift { transition: transform 0.45s cubic-bezier(0.22,1,0.36,1), box-shadow 0.45s ease; }
+  .lift:hover { transform: translateY(-8px); box-shadow: 0 28px 60px -18px rgba(31, 42, 29, 0.35); }
+
+  /* Respect users who prefer less motion */
+  @media (prefers-reduced-motion: reduce) {
+    .bob, .mist, .firefly { animation: none; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body class="text-[#1f2a1d]">
+
+<!-- ============================================================
+     NAVBAR (fixed across the whole journey)
+============================================================ -->
+<nav id="site-nav" class="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 sm:px-6 md:px-10 py-4 sm:py-6 transition-colors duration-500">
+  <a href="#top" class="flex items-center gap-2 text-[#2d3a2a]">
+    <span class="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight display-font">
+      Riddhibrata<sup class="text-[10px] sm:text-xs font-medium tracking-normal">UX</sup>
+    </span>
+  </a>
+
+  <div class="hidden lg:flex items-center gap-1 bg-white/70 backdrop-blur-md rounded-full pl-6 pr-1 py-1 shadow-sm border border-white/60">
+    <a href="#about" class="nav-link text-sm px-3 py-2 transition-colors font-medium text-[#4b5b47] hover:text-[#1f2a1d]">About</a>
+    <a href="#process" class="nav-link text-sm px-3 py-2 transition-colors font-medium text-[#4b5b47] hover:text-[#1f2a1d]">Process</a>
+    <a href="#projects" class="nav-link text-sm px-3 py-2 transition-colors font-medium text-[#4b5b47] hover:text-[#1f2a1d]">Projects</a>
+    <a href="#experiments" class="nav-link text-sm px-3 py-2 transition-colors font-medium text-[#4b5b47] hover:text-[#1f2a1d]">Experiments</a>
+    <a href="#contact" class="ml-2 bg-[#1f2a1d] hover:bg-[#2a3827] text-white text-sm font-medium px-5 py-2.5 rounded-full transition-colors">
+      Get in Touch
+    </a>
+  </div>
+
+  <div class="flex items-center gap-3 sm:gap-6 text-[#2d3a2a]">
+    <a href="mailto:riddhibrata965@gmail.com" class="hidden sm:flex items-center gap-2 text-sm font-medium hover:opacity-80 transition-opacity">
+      <i data-lucide="mail" class="w-4 h-4"></i>
+      Say Hello
+    </a>
+    <button
+      id="menu-btn"
+      class="lg:hidden relative flex items-center justify-center w-10 h-10 rounded-full bg-white/70 backdrop-blur-md border border-white/60 text-[#1f2a1d] transition-all duration-300 hover:bg-white/90"
+      aria-label="Open menu"
+      aria-expanded="false"
+    >
+      <i id="icon-menu" data-lucide="menu" class="w-5 h-5 absolute transition-all duration-300 opacity-100 rotate-0 scale-100"></i>
+      <i id="icon-x" data-lucide="x" class="w-5 h-5 absolute transition-all duration-300 opacity-0 -rotate-90 scale-50"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile menu overlay -->
+<div id="mobile-overlay" class="lg:hidden fixed inset-0 z-20 transition-opacity duration-300 opacity-0 pointer-events-none">
+  <div class="absolute inset-0 bg-[#1f2a1d]/40 backdrop-blur-sm"></div>
+</div>
+
+<!-- Mobile menu drawer -->
+<div
+  id="mobile-drawer"
+  class="lg:hidden fixed top-0 right-0 bottom-0 z-30 w-[85%] max-w-sm bg-white/95 backdrop-blur-xl shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] translate-x-full"
+>
+  <div class="flex flex-col h-full pt-24 px-8 pb-8">
+    <div class="flex flex-col gap-1">
+      <a href="#about" class="mobile-nav-link text-2xl font-semibold text-[#1f2a1d] py-4 border-b border-[#1f2a1d]/10 transition-all duration-500 translate-x-8 opacity-0">About</a>
+      <a href="#process" class="mobile-nav-link text-2xl font-semibold text-[#1f2a1d] py-4 border-b border-[#1f2a1d]/10 transition-all duration-500 translate-x-8 opacity-0">Process</a>
+      <a href="#projects" class="mobile-nav-link text-2xl font-semibold text-[#1f2a1d] py-4 border-b border-[#1f2a1d]/10 transition-all duration-500 translate-x-8 opacity-0">Projects</a>
+      <a href="#experiments" class="mobile-nav-link text-2xl font-semibold text-[#1f2a1d] py-4 border-b border-[#1f2a1d]/10 transition-all duration-500 translate-x-8 opacity-0">Experiments</a>
+      <a href="#contact" class="mobile-nav-link text-2xl font-semibold text-[#1f2a1d] py-4 border-b border-[#1f2a1d]/10 transition-all duration-500 translate-x-8 opacity-0">Contact</a>
+    </div>
+    <div id="mobile-cta-group" class="mt-8 flex flex-col gap-4 transition-all duration-500 translate-x-8 opacity-0">
+      <a href="mailto:riddhibrata965@gmail.com" class="flex items-center gap-2 text-sm font-medium text-[#2d3a2a]">
+        <i data-lucide="mail" class="w-4 h-4"></i>
+        riddhibrata965@gmail.com
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     ACT 1 — THE BRIDGE (hero)
+     A 300vh scroll track. The scene stays pinned while scrolling
+     zooms the camera through the arch of the bridge, then a warm
+     light swallows the frame and the first valley (About) begins.
+============================================================ -->
+<div id="journey-wrap" class="relative h-[250vh]" >
+  <div id="top" class="sticky top-0 h-screen overflow-hidden bg-[#1f2a1d]">
+
+    <!-- The scene that gets zoomed (video + vignette) -->
+    <div id="hero-scene" class="absolute inset-0 w-full h-full">
+      <video
+        id="bg-video"
+        class="w-full h-full object-cover"
+        style="display:block"
+        muted
+        playsinline
+        preload="auto"
+        crossorigin="anonymous"
+      ></video>
+      <canvas id="bg-canvas" class="w-full h-full object-cover" style="display:none"></canvas>
+      <!-- Soft vignette that deepens as we fly under the arch -->
+      <div id="arch-vignette" class="absolute inset-0 opacity-0"
+           style="background: radial-gradient(ellipse 42% 38% at 50% 68%, transparent 30%, rgba(31,42,29,0.9) 100%);"></div>
+    </div>
+
+    <!-- Hero copy -->
+    <div id="hero-copy" class="relative z-10 flex flex-col items-center text-center pt-24 sm:pt-28 md:pt-32 px-4 sm:px-6">
+      <h1 class="display-font font-normal leading-[0.95] text-[#336443] text-[2rem] sm:text-4xl md:text-5xl lg:text-[4.75rem] xl:text-[5.25rem] max-w-5xl">
+        Designing bridges
+        <span class="text-[#85AB8B]">
+          between people
+          <br class="hidden sm:block" /> and products
+        </span>
+      </h1>
+      <p class="mt-6 sm:mt-8 text-[#4b5b47] text-sm sm:text-base md:text-lg leading-relaxed max-w-md px-2">
+        I'm Riddhibrata — a SaaS UX designer shaping scattered ideas into seamless product journeys.
+      </p>
+    </div>
+
+    <!-- Bottom-left intro block -->
+    <div id="hero-cta" class="absolute left-4 right-4 sm:right-auto sm:left-6 md:left-10 bottom-6 sm:bottom-8 md:bottom-10 z-10 max-w-sm">
+      <div class="flex items-center gap-2 text-[#3d5638] sm:text-white/95 mb-3">
+        <i data-lucide="compass" class="w-4 h-4"></i>
+        <span class="text-sm font-semibold sm:font-medium">The Journey</span>
+      </div>
+      <p class="text-[#3d5638]/90 sm:text-white/85 text-xs leading-relaxed mb-6 max-w-xs font-medium sm:font-normal">
+        This portfolio is a walk across valleys — my story, my process, my work. Scroll to cross the bridge.
+      </p>
+      <div class="flex items-center gap-4 flex-wrap">
+        <a href="#about" class="bg-[#3d5638] sm:bg-white hover:bg-[#2d4228] sm:hover:bg-white/90 text-white sm:text-[#1f2a1d] text-sm font-semibold px-5 sm:px-6 py-2.5 sm:py-3 rounded-full transition-colors shadow-sm inline-block">
+          Begin the Journey
+        </a>
+        <a href="#projects" class="text-[#3d5638] sm:text-white text-sm font-semibold sm:font-medium hover:opacity-80 transition-opacity">
+          Straight to Projects.
+        </a>
+      </div>
+    </div>
+
+    <!-- Bottom-right scroll hint -->
+    <div id="hero-hint" class="hidden sm:flex absolute right-6 md:right-10 bottom-8 md:bottom-10 z-10 items-center gap-3 text-white/90 text-sm">
+      <span class="flex items-center justify-center w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm">
+        <i data-lucide="chevron-down" class="w-4 h-4 bob"></i>
+      </span>
+      <span class="font-medium">Scroll to cross the bridge</span>
+    </div>
+
+    <!-- Warm light that swallows the frame at the end of the zoom -->
+    <div id="zoom-overlay" class="absolute inset-0 z-20 opacity-0 pointer-events-none"
+         style="background: radial-gradient(ellipse 70% 60% at 50% 62%, #f7f4e9 0%, #f2efe6 55%, #e7e3d2 100%);"></div>
+  </div>
+</div>
+
+<main class="relative">
+<!-- ============================================================
+     ACT 2 — FIRST VALLEY · ABOUT ME
+     Dawn valley: pale sky, distant ridges drifting in parallax.
+============================================================ -->
+<section id="about" class="relative overflow-hidden bg-[#f2efe6] -mt-px">
+
+  <!-- Scene · fog rolling over the first valley at dawn -->
+  <div class="scene-bg">
+    <img class="scene-img" data-zoom="out" src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1920&q=70" alt="Fog rolling over dawn-lit green hills" />
+    <div class="absolute inset-0" style="background: linear-gradient(to bottom, rgba(242,239,230,0.95) 0%, rgba(242,239,230,0.4) 35%, rgba(242,239,230,0.2) 65%, rgba(242,239,230,0.8) 100%);"></div>
+  </div>
+
+  <div class="relative z-10 min-h-screen flex flex-col justify-center pt-28 sm:pt-32 pb-28 sm:pb-32">
+  <div class="mist absolute bottom-[8vh] left-0 w-full h-24 opacity-50" style="background: linear-gradient(90deg, transparent, #ffffff88 30%, transparent 60%, #ffffff66 85%, transparent);"></div>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-6 md:px-10 w-full">
+    <p class="reveal text-xs font-semibold tracking-[0.3em] uppercase text-[#336443] mb-4">Valley 01 — The Designer</p>
+    <h2 class="reveal display-font text-4xl sm:text-5xl md:text-6xl text-[#24402c] leading-[1.02] max-w-3xl" style="text-shadow: 0 2px 24px rgba(242,239,230,0.8);">
+      Hello, I'm Riddhibrata.
+    </h2>
+    <div class="mt-10 grid md:grid-cols-5 gap-10 md:gap-14 items-start">
+      <div class="reveal md:col-span-3 text-[#3d4b3a] text-base sm:text-lg leading-relaxed space-y-5 bg-white/55 backdrop-blur-md border border-white/60 rounded-3xl p-7 sm:p-8">
+        <p>
+          I'm a SaaS UX designer who believes every product is a landscape and every user is a traveller.
+          My job is to build the bridges — the flows, screens and moments that carry people from
+          <em>“what is this?”</em> to <em>“I can't work without this.”</em>
+          <!-- ✏️ Replace this paragraph with your real bio -->
+        </p>
+        <p>
+          Over the past years I've designed analytics dashboards, onboarding journeys and design systems
+          for B2B products — always starting from research, always ending in shipped, measured outcomes.
+        </p>
+      </div>
+      <div class="reveal md:col-span-2 grid grid-cols-2 gap-4">
+        <!-- ✏️ Swap these stats with your own -->
+        <div class="bg-white/70 backdrop-blur-sm border border-white/70 rounded-2xl p-5">
+          <p class="display-font text-3xl text-[#336443]">5+</p>
+          <p class="text-xs text-[#4b5b47] mt-1 font-medium">Years designing SaaS</p>
+        </div>
+        <div class="bg-white/70 backdrop-blur-sm border border-white/70 rounded-2xl p-5">
+          <p class="display-font text-3xl text-[#336443]">12</p>
+          <p class="text-xs text-[#4b5b47] mt-1 font-medium">Products shipped</p>
+        </div>
+        <div class="bg-white/70 backdrop-blur-sm border border-white/70 rounded-2xl p-5">
+          <p class="display-font text-3xl text-[#336443]">40k+</p>
+          <p class="text-xs text-[#4b5b47] mt-1 font-medium">Users impacted</p>
+        </div>
+        <div class="bg-white/70 backdrop-blur-sm border border-white/70 rounded-2xl p-5">
+          <p class="display-font text-3xl text-[#336443]">3</p>
+          <p class="text-xs text-[#4b5b47] mt-1 font-medium">Design systems built</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Ridge leading into the next valley -->
+  <svg class="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 120" preserveAspectRatio="none" style="height: 90px;">
+    <path fill="#e6ead9" d="M0,64 C240,20 480,100 720,60 C960,20 1200,90 1440,50 L1440,120 L0,120 Z"/>
+  </svg>
+</section>
+
+<!-- ============================================================
+     ACT 3 — MISTY VALLEY · PROCESS & SKILLS
+     A winding trail connects the four stages of how I work.
+============================================================ -->
+<section id="process" class="relative overflow-hidden bg-[#e6ead9]">
+
+  <!-- Scene · sunbeams cutting through the forest trail -->
+  <div class="scene-bg">
+    <img class="scene-img" data-zoom="in" src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1920&q=70" alt="Sunbeams cutting through a misty forest trail" loading="lazy" />
+    <div class="absolute inset-0" style="background: linear-gradient(to bottom, rgba(230,234,217,0.92) 0%, rgba(230,234,217,0.4) 30%, rgba(230,234,217,0.3) 65%, rgba(230,234,217,0.85) 100%);"></div>
+  </div>
+
+  <div class="relative z-10 pt-28 sm:pt-32 pb-28 sm:pb-32">
+  <div class="mist slow absolute top-24 left-0 w-full h-40 opacity-50" style="background: linear-gradient(90deg, transparent, #ffffffaa 25%, transparent 55%, #ffffff88 80%, transparent);"></div>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-6 md:px-10">
+    <p class="reveal text-xs font-semibold tracking-[0.3em] uppercase text-[#336443] mb-4">Valley 02 — The Trail</p>
+    <h2 class="reveal display-font text-4xl sm:text-5xl md:text-6xl text-[#24402c] leading-[1.02] max-w-3xl" style="text-shadow: 0 2px 24px rgba(230,234,217,0.8);">
+      How I find the way through.
+    </h2>
+
+    <!-- Winding trail (drawn as you scroll) -->
+    <div class="relative mt-16">
+      <svg class="hidden md:block absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 1000 700" preserveAspectRatio="none" fill="none">
+        <path id="trail-path" d="M80,80 C350,80 420,80 500,180 C580,280 300,300 250,400 C200,500 650,460 720,560 C770,630 850,620 920,620"
+              stroke="#85AB8B" stroke-width="3" stroke-dasharray="10 12" stroke-linecap="round" opacity="0.8"/>
+      </svg>
+
+      <div class="grid md:grid-cols-2 gap-8 md:gap-x-24 md:gap-y-28">
+        <div class="reveal bg-white/75 backdrop-blur-sm border border-white/70 rounded-3xl p-7 lift">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="flex items-center justify-center w-10 h-10 rounded-full bg-[#336443] text-white"><i data-lucide="search" class="w-5 h-5"></i></span>
+            <p class="text-xs font-semibold tracking-[0.2em] uppercase text-[#85AB8B]">01 · Discover</p>
+          </div>
+          <h3 class="display-font text-2xl text-[#24402c]">Listen before drawing</h3>
+          <p class="mt-2 text-sm text-[#4b5b47] leading-relaxed">User interviews, support-ticket mining, analytics deep-dives. I map where travellers get lost before proposing new roads.</p>
+        </div>
+
+        <div class="reveal bg-white/75 backdrop-blur-sm border border-white/70 rounded-3xl p-7 lift md:mt-24">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="flex items-center justify-center w-10 h-10 rounded-full bg-[#336443] text-white"><i data-lucide="map" class="w-5 h-5"></i></span>
+            <p class="text-xs font-semibold tracking-[0.2em] uppercase text-[#85AB8B]">02 · Define</p>
+          </div>
+          <h3 class="display-font text-2xl text-[#24402c]">Chart the terrain</h3>
+          <p class="mt-2 text-sm text-[#4b5b47] leading-relaxed">Journey maps, jobs-to-be-done, success metrics agreed with product and engineering — so we all climb the same mountain.</p>
+        </div>
+
+        <div class="reveal bg-white/75 backdrop-blur-sm border border-white/70 rounded-3xl p-7 lift">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="flex items-center justify-center w-10 h-10 rounded-full bg-[#336443] text-white"><i data-lucide="pen-tool" class="w-5 h-5"></i></span>
+            <p class="text-xs font-semibold tracking-[0.2em] uppercase text-[#85AB8B]">03 · Design</p>
+          </div>
+          <h3 class="display-font text-2xl text-[#24402c]">Build the bridge</h3>
+          <p class="mt-2 text-sm text-[#4b5b47] leading-relaxed">Flows → wireframes → high-fidelity prototypes in Figma. Motion and micro-interactions are part of the design, not decoration.</p>
+        </div>
+
+        <div class="reveal bg-white/75 backdrop-blur-sm border border-white/70 rounded-3xl p-7 lift md:mt-24">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="flex items-center justify-center w-10 h-10 rounded-full bg-[#336443] text-white"><i data-lucide="flag" class="w-5 h-5"></i></span>
+            <p class="text-xs font-semibold tracking-[0.2em] uppercase text-[#85AB8B]">04 · Deliver</p>
+          </div>
+          <h3 class="display-font text-2xl text-[#24402c]">Walk it with users</h3>
+          <p class="mt-2 text-sm text-[#4b5b47] leading-relaxed">Usability testing, dev handoff with tokens and specs, and post-launch measurement. Shipped is the start, not the finish line.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbelt -->
+    <div class="reveal mt-20">
+      <p class="text-xs font-semibold tracking-[0.25em] uppercase text-[#85AB8B] mb-4">Carried in the pack</p>
+      <div class="flex flex-wrap gap-2.5">
+        <!-- ✏️ Edit your tools & skills here -->
+        <span class="px-4 py-2 rounded-full bg-white/80 border border-white/70 text-sm font-medium text-[#24402c]">Figma</span>
+        <span class="px-4 py-2 rounded-full bg-white/80 border border-white/70 text-sm font-medium text-[#24402c]">Framer</span>
+        <span class="px-4 py-2 rounded-full bg-white/80 border border-white/70 text-sm font-medium text-[#24402c]">Maze</span>
+        <span class="px-4 py-2 rounded-full bg-white/80 border border-white/70 text-sm font-medium text-[#24402c]">Notion</span>
+        <span class="px-4 py-2 rounded-full bg-white/80 border border-white/70 text-sm font-medium text-[#24402c]">Design Systems</span>
+        <span class="px-4 py-2 rounded-full bg-white/80 border border-white/70 text-sm font-medium text-[#24402c]">User Research</span>
+        <span class="px-4 py-2 rounded-full bg-white/80 border border-white/70 text-sm font-medium text-[#24402c]">Prototyping</span>
+        <span class="px-4 py-2 rounded-full bg-white/80 border border-white/70 text-sm font-medium text-[#24402c]">Interaction Design</span>
+        <span class="px-4 py-2 rounded-full bg-white/80 border border-white/70 text-sm font-medium text-[#24402c]">HTML / CSS</span>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Ridge descending into the evening valley -->
+  <svg class="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 140" preserveAspectRatio="none" style="height: 110px;">
+    <path fill="#3a5540" d="M0,90 C200,40 460,120 700,70 C940,20 1180,110 1440,60 L1440,140 L0,140 Z"/>
+    <path fill="#24402c" d="M0,110 C260,70 520,135 780,100 C1040,65 1240,125 1440,95 L1440,140 L0,140 Z"/>
+  </svg>
+</section>
+<!-- ============================================================
+     ACT 4 — EVENING VALLEY · PROJECTS
+     The deep-green valley where the real work lives.
+============================================================ -->
+<section id="projects" class="relative overflow-hidden bg-[#24402c] -mt-px">
+
+  <!-- Scene · dusk settling over the high peaks -->
+  <div class="scene-bg">
+    <img class="scene-img" data-zoom="out" src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1920&q=70" alt="Dusk light settling over high mountain peaks" loading="lazy" />
+    <div class="absolute inset-0" style="background: linear-gradient(to bottom, rgba(36,64,44,0.92) 0%, rgba(36,64,44,0.5) 30%, rgba(36,64,44,0.45) 65%, rgba(36,64,44,0.92) 100%);"></div>
+  </div>
+
+  <div class="relative z-10 pt-28 sm:pt-32 pb-28 sm:pb-32">
+  <div class="relative z-10 max-w-6xl mx-auto px-6 md:px-10">
+    <p class="reveal text-xs font-semibold tracking-[0.3em] uppercase text-[#85AB8B] mb-4">Valley 03 — The Work</p>
+    <h2 class="reveal display-font text-4xl sm:text-5xl md:text-6xl text-[#f2efe6] leading-[1.02] max-w-3xl" style="text-shadow: 0 2px 24px rgba(31,42,29,0.6);">
+      Journeys I've designed.
+    </h2>
+    <p class="reveal mt-5 text-[#a8bd9d] text-base sm:text-lg max-w-xl leading-relaxed">
+      Three case studies — each starting with a lost traveller and ending with a measurable outcome.
+      <!-- ✏️ Replace these three cards with your real case studies. Link each card to a full case-study page or PDF. -->
+    </p>
+
+    <div class="mt-16 space-y-10 sm:space-y-14">
+
+      <!-- Case study 1 -->
+      <a href="#" class="reveal lift block bg-[#f2efe6] rounded-[2rem] overflow-hidden group">
+        <div class="grid md:grid-cols-2">
+          <div class="p-8 sm:p-10 flex flex-col justify-center">
+            <p class="text-xs font-semibold tracking-[0.2em] uppercase text-[#85AB8B] mb-3">B2B Analytics · Case Study 01</p>
+            <h3 class="display-font text-3xl sm:text-4xl text-[#24402c]">Flowboard — untangling the report builder</h3>
+            <p class="mt-4 text-sm sm:text-base text-[#4b5b47] leading-relaxed">
+              42% of users abandoned Flowboard's report builder mid-way. I rebuilt it around progressive disclosure and
+              a live preview, cutting steps from 9 to 4.
+            </p>
+            <div class="mt-6 flex flex-wrap gap-2">
+              <span class="px-3 py-1.5 rounded-full bg-[#24402c]/10 text-xs font-semibold text-[#24402c]">−58% drop-off</span>
+              <span class="px-3 py-1.5 rounded-full bg-[#24402c]/10 text-xs font-semibold text-[#24402c]">+31% reports created</span>
+              <span class="px-3 py-1.5 rounded-full bg-[#24402c]/10 text-xs font-semibold text-[#24402c]">UX research → shipped</span>
+            </div>
+            <span class="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-[#336443] group-hover:gap-3 transition-all">
+              Read the case study <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </span>
+          </div>
+          <!-- Abstract product mockup (replace with a real screenshot <img>) -->
+          <div class="bg-gradient-to-br from-[#85AB8B] to-[#336443] p-8 sm:p-12 flex items-center">
+            <svg viewBox="0 0 400 260" class="w-full drop-shadow-2xl" xmlns="http://www.w3.org/2000/svg">
+              <rect width="400" height="260" rx="14" fill="#f7f4e9"/>
+              <rect width="400" height="30" rx="14" fill="#e7e3d2"/>
+              <circle cx="18" cy="15" r="4" fill="#d9827a"/><circle cx="32" cy="15" r="4" fill="#d9b36a"/><circle cx="46" cy="15" r="4" fill="#85AB8B"/>
+              <rect x="16" y="46" width="90" height="198" rx="8" fill="#e7e3d2"/>
+              <rect x="26" y="60" width="70" height="8" rx="4" fill="#a8bd9d"/>
+              <rect x="26" y="78" width="56" height="8" rx="4" fill="#cfd9c2"/>
+              <rect x="26" y="96" width="62" height="8" rx="4" fill="#cfd9c2"/>
+              <rect x="122" y="46" width="262" height="110" rx="8" fill="#ffffff"/>
+              <polyline points="138,130 180,100 220,116 262,80 306,96 348,64" fill="none" stroke="#336443" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="122" y="168" width="124" height="76" rx="8" fill="#ffffff"/>
+              <rect x="136" y="182" width="60" height="8" rx="4" fill="#a8bd9d"/>
+              <rect x="136" y="200" width="96" height="30" rx="6" fill="#85AB8B"/>
+              <rect x="260" y="168" width="124" height="76" rx="8" fill="#ffffff"/>
+              <rect x="274" y="182" width="60" height="8" rx="4" fill="#a8bd9d"/>
+              <rect x="274" y="200" width="40" height="30" rx="6" fill="#336443"/>
+              <rect x="322" y="200" width="48" height="30" rx="6" fill="#cfd9c2"/>
+            </svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Case study 2 -->
+      <a href="#" class="reveal lift block bg-[#f2efe6] rounded-[2rem] overflow-hidden group">
+        <div class="grid md:grid-cols-2">
+          <div class="order-last md:order-first bg-gradient-to-br from-[#d9b36a] to-[#b5854a] p-8 sm:p-12 flex items-center">
+            <svg viewBox="0 0 400 260" class="w-full drop-shadow-2xl" xmlns="http://www.w3.org/2000/svg">
+              <rect width="400" height="260" rx="14" fill="#f7f4e9"/>
+              <rect x="130" y="30" width="140" height="10" rx="5" fill="#e7e3d2"/>
+              <circle cx="200" cy="92" r="34" fill="#85AB8B"/>
+              <path d="M186 92 l10 10 l20 -20" stroke="#f7f4e9" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="110" y="146" width="180" height="10" rx="5" fill="#a8bd9d"/>
+              <rect x="130" y="166" width="140" height="8" rx="4" fill="#cfd9c2"/>
+              <rect x="140" y="196" width="120" height="34" rx="17" fill="#336443"/>
+              <rect x="178" y="209" width="44" height="8" rx="4" fill="#f7f4e9"/>
+              <circle cx="176" cy="246" r="4" fill="#336443"/><circle cx="200" cy="246" r="4" fill="#cfd9c2"/><circle cx="224" cy="246" r="4" fill="#cfd9c2"/>
+            </svg>
+          </div>
+          <div class="p-8 sm:p-10 flex flex-col justify-center">
+            <p class="text-xs font-semibold tracking-[0.2em] uppercase text-[#b5854a] mb-3">Activation · Case Study 02</p>
+            <h3 class="display-font text-3xl sm:text-4xl text-[#24402c]">Onboardly — first five minutes that stick</h3>
+            <p class="mt-4 text-sm sm:text-base text-[#4b5b47] leading-relaxed">
+              New users churned before reaching the “aha” moment. I designed a goal-based onboarding journey with
+              contextual checklists instead of an upfront product tour.
+            </p>
+            <div class="mt-6 flex flex-wrap gap-2">
+              <span class="px-3 py-1.5 rounded-full bg-[#24402c]/10 text-xs font-semibold text-[#24402c]">+38% activation</span>
+              <span class="px-3 py-1.5 rounded-full bg-[#24402c]/10 text-xs font-semibold text-[#24402c]">−22% time-to-value</span>
+              <span class="px-3 py-1.5 rounded-full bg-[#24402c]/10 text-xs font-semibold text-[#24402c]">5 usability rounds</span>
+            </div>
+            <span class="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-[#336443] group-hover:gap-3 transition-all">
+              Read the case study <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Case study 3 -->
+      <a href="#" class="reveal lift block bg-[#f2efe6] rounded-[2rem] overflow-hidden group">
+        <div class="grid md:grid-cols-2">
+          <div class="p-8 sm:p-10 flex flex-col justify-center">
+            <p class="text-xs font-semibold tracking-[0.2em] uppercase text-[#85AB8B] mb-3">Design System · Case Study 03</p>
+            <h3 class="display-font text-3xl sm:text-4xl text-[#24402c]">Meadow DS — one language for four products</h3>
+            <p class="mt-4 text-sm sm:text-base text-[#4b5b47] leading-relaxed">
+              Four product teams, four button styles, endless debates. I led the creation of a tokenised design system
+              that let teams ship consistent UI twice as fast.
+            </p>
+            <div class="mt-6 flex flex-wrap gap-2">
+              <span class="px-3 py-1.5 rounded-full bg-[#24402c]/10 text-xs font-semibold text-[#24402c]">120+ components</span>
+              <span class="px-3 py-1.5 rounded-full bg-[#24402c]/10 text-xs font-semibold text-[#24402c]">2× faster UI delivery</span>
+              <span class="px-3 py-1.5 rounded-full bg-[#24402c]/10 text-xs font-semibold text-[#24402c]">Adopted by 4 teams</span>
+            </div>
+            <span class="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-[#336443] group-hover:gap-3 transition-all">
+              Read the case study <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </span>
+          </div>
+          <div class="bg-gradient-to-br from-[#4b5b47] to-[#24402c] p-8 sm:p-12 flex items-center">
+            <svg viewBox="0 0 400 260" class="w-full drop-shadow-2xl" xmlns="http://www.w3.org/2000/svg">
+              <rect width="400" height="260" rx="14" fill="#f7f4e9"/>
+              <rect x="20" y="24" width="80" height="10" rx="5" fill="#a8bd9d"/>
+              <rect x="20" y="52" width="170" height="88" rx="10" fill="#85AB8B"/>
+              <rect x="36" y="106" width="80" height="10" rx="5" fill="#f7f4e9"/>
+              <rect x="210" y="52" width="170" height="88" rx="10" fill="#336443"/>
+              <rect x="226" y="106" width="80" height="10" rx="5" fill="#f7f4e9"/>
+              <rect x="20" y="160" width="108" height="76" rx="10" fill="#e7e3d2"/>
+              <circle cx="50" cy="190" r="12" fill="#d9b36a"/>
+              <rect x="36" y="212" width="70" height="8" rx="4" fill="#a8bd9d"/>
+              <rect x="146" y="160" width="108" height="76" rx="10" fill="#e7e3d2"/>
+              <rect x="162" y="178" width="76" height="24" rx="12" fill="#336443"/>
+              <rect x="162" y="212" width="50" height="8" rx="4" fill="#a8bd9d"/>
+              <rect x="272" y="160" width="108" height="76" rx="10" fill="#e7e3d2"/>
+              <rect x="288" y="178" width="24" height="24" rx="6" fill="#85AB8B"/>
+              <rect x="320" y="178" width="24" height="24" rx="6" fill="#336443"/>
+              <rect x="288" y="212" width="70" height="8" rx="4" fill="#a8bd9d"/>
+            </svg>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+  </div>
+
+  <!-- Ridge falling into night -->
+  <svg class="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 120" preserveAspectRatio="none" style="height: 90px;">
+    <path fill="#1f2a1d" d="M0,70 C260,20 520,105 780,65 C1040,25 1240,95 1440,55 L1440,120 L0,120 Z"/>
+  </svg>
+</section>
+
+<!-- ============================================================
+     ACT 5 — NIGHT VALLEY · EXPERIMENTS
+     After dark, the playground: side quests and prototypes,
+     lit by fireflies.
+============================================================ -->
+<section id="experiments" class="relative overflow-hidden bg-[#1f2a1d] -mt-px">
+
+  <!-- Scene · starlight over the night valley -->
+  <div class="scene-bg">
+    <img class="scene-img" data-zoom="in" src="https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1920&q=70" alt="Stars over a moonlit mountain valley at night" loading="lazy" />
+    <div class="absolute inset-0" style="background: linear-gradient(to bottom, rgba(31,42,29,0.92) 0%, rgba(31,42,29,0.45) 30%, rgba(31,42,29,0.5) 65%, rgba(31,42,29,0.92) 100%);"></div>
+  </div>
+
+  <div class="relative z-10 min-h-screen flex flex-col justify-center pt-28 sm:pt-32 pb-28 sm:pb-32">
+  <!-- Fireflies -->
+  <div class="firefly" style="top: 22%; left: 12%; animation-delay: 0s;"></div>
+  <div class="firefly" style="top: 35%; left: 78%; animation-delay: 1.4s;"></div>
+  <div class="firefly" style="top: 60%; left: 26%; animation-delay: 2.8s;"></div>
+  <div class="firefly" style="top: 18%; left: 55%; animation-delay: 4.2s;"></div>
+  <div class="firefly" style="top: 70%; left: 66%; animation-delay: 5.1s;"></div>
+  <div class="firefly" style="top: 48%; left: 88%; animation-delay: 3.3s;"></div>
+  <div class="firefly" style="top: 82%; left: 42%; animation-delay: 1.9s;"></div>
+  <div class="firefly" style="top: 28%; left: 34%; animation-delay: 6s;"></div>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-6 md:px-10 w-full">
+    <p class="reveal text-xs font-semibold tracking-[0.3em] uppercase text-[#d9b36a] mb-4">Valley 04 — After Dark</p>
+    <h2 class="reveal display-font text-4xl sm:text-5xl md:text-6xl text-[#f2efe6] leading-[1.02] max-w-3xl" style="text-shadow: 0 2px 24px rgba(0,0,0,0.6);">
+      Experiments &amp; side quests.
+    </h2>
+    <p class="reveal mt-5 text-[#a8bd9d] text-base sm:text-lg max-w-xl leading-relaxed">
+      Not everything needs a business case. These are the prototypes and playful ideas that keep the craft sharp.
+      <!-- ✏️ Replace with your real experiments; link cards to Dribbble/Codepen/Figma prototypes -->
+    </p>
+
+    <div class="mt-14 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <a href="#" class="reveal lift block bg-white/[0.06] border border-white/10 rounded-3xl p-6 backdrop-blur-sm group">
+        <span class="flex items-center justify-center w-11 h-11 rounded-2xl bg-[#d9b36a]/15 text-[#d9b36a] mb-5"><i data-lucide="mouse-pointer-click" class="w-5 h-5"></i></span>
+        <h3 class="display-font text-xl text-[#f2efe6]">Micro-interaction library</h3>
+        <p class="mt-2 text-sm text-[#a8bd9d] leading-relaxed">30 days of small delightful moments — toggles, loaders, confirmations.</p>
+        <span class="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-[#d9b36a] group-hover:gap-3 transition-all">Explore <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></span>
+      </a>
+      <a href="#" class="reveal lift block bg-white/[0.06] border border-white/10 rounded-3xl p-6 backdrop-blur-sm group">
+        <span class="flex items-center justify-center w-11 h-11 rounded-2xl bg-[#d9b36a]/15 text-[#d9b36a] mb-5"><i data-lucide="sparkles" class="w-5 h-5"></i></span>
+        <h3 class="display-font text-xl text-[#f2efe6]">AI-native UI concepts</h3>
+        <p class="mt-2 text-sm text-[#a8bd9d] leading-relaxed">Exploring what SaaS interfaces look like when a copilot is a first-class citizen.</p>
+        <span class="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-[#d9b36a] group-hover:gap-3 transition-all">Explore <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></span>
+      </a>
+      <a href="#" class="reveal lift block bg-white/[0.06] border border-white/10 rounded-3xl p-6 backdrop-blur-sm group">
+        <span class="flex items-center justify-center w-11 h-11 rounded-2xl bg-[#d9b36a]/15 text-[#d9b36a] mb-5"><i data-lucide="bar-chart-3" class="w-5 h-5"></i></span>
+        <h3 class="display-font text-xl text-[#f2efe6]">Data-viz studies</h3>
+        <p class="mt-2 text-sm text-[#a8bd9d] leading-relaxed">Making dense dashboards breathe — hierarchy, colour and motion experiments.</p>
+        <span class="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-[#d9b36a] group-hover:gap-3 transition-all">Explore <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></span>
+      </a>
+      <a href="#" class="reveal lift block bg-white/[0.06] border border-white/10 rounded-3xl p-6 backdrop-blur-sm group">
+        <span class="flex items-center justify-center w-11 h-11 rounded-2xl bg-[#d9b36a]/15 text-[#d9b36a] mb-5"><i data-lucide="smartphone" class="w-5 h-5"></i></span>
+        <h3 class="display-font text-xl text-[#f2efe6]">Mobile nav patterns</h3>
+        <p class="mt-2 text-sm text-[#a8bd9d] leading-relaxed">Prototyping thumb-friendly navigation for complex B2B apps on small screens.</p>
+        <span class="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-[#d9b36a] group-hover:gap-3 transition-all">Explore <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></span>
+      </a>
+    </div>
+  </div>
+  </div>
+
+  <!-- Dawn breaking at the bottom -->
+  <div class="absolute bottom-0 left-0 w-full h-40 pointer-events-none" style="background: linear-gradient(to bottom, transparent, rgba(242,239,230,0.25));"></div>
+  <svg class="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 120" preserveAspectRatio="none" style="height: 90px;">
+    <path fill="#f2efe6" d="M0,75 C240,30 480,105 720,70 C960,35 1200,100 1440,60 L1440,120 L0,120 Z"/>
+  </svg>
+</section>
+
+<!-- ============================================================
+     ACT 6 — THE SUMMIT AT SUNRISE · CONTACT
+============================================================ -->
+<section id="contact" class="relative overflow-hidden bg-[#f2efe6]">
+
+  <!-- Scene · sunrise breaking over the summit -->
+  <div class="scene-bg">
+    <img class="scene-img" data-zoom="in" src="https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1920&q=70" alt="Golden sunrise breaking over rolling hills" loading="lazy" />
+    <div class="absolute inset-0" style="background: linear-gradient(to bottom, rgba(242,239,230,0.92) 0%, rgba(242,239,230,0.5) 35%, rgba(242,239,230,0.55) 70%, rgba(242,239,230,0.9) 100%);"></div>
+  </div>
+
+  <div class="relative z-10 min-h-screen flex flex-col justify-center pt-28 sm:pt-32 pb-10">
+  <div class="relative z-10 max-w-4xl mx-auto px-6 md:px-10 text-center">
+    <p class="reveal text-xs font-semibold tracking-[0.3em] uppercase text-[#336443] mb-4">The Summit — Journey's End</p>
+    <h2 class="reveal display-font text-4xl sm:text-5xl md:text-7xl text-[#24402c] leading-[1.02]">
+      Let's build the next
+      <span class="text-[#85AB8B]">bridge together.</span>
+    </h2>
+    <p class="reveal mt-6 text-[#4b5b47] text-base sm:text-lg max-w-lg mx-auto leading-relaxed">
+      Open to SaaS product design roles and collaborations. The fastest way to reach me:
+    </p>
+    <div class="reveal mt-9 flex items-center justify-center gap-4 flex-wrap">
+      <a href="mailto:riddhibrata965@gmail.com" class="inline-flex items-center gap-2 bg-[#1f2a1d] hover:bg-[#2a3827] text-white text-sm font-semibold px-7 py-3.5 rounded-full transition-colors shadow-sm">
+        <i data-lucide="mail" class="w-4 h-4"></i> riddhibrata965@gmail.com
+      </a>
+    </div>
+    <div class="reveal mt-7 flex items-center justify-center gap-6 text-sm font-medium text-[#4b5b47]">
+      <!-- ✏️ Update these links -->
+      <a href="https://www.linkedin.com/" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 hover:text-[#1f2a1d] transition-colors"><i data-lucide="linkedin" class="w-4 h-4"></i> LinkedIn</a>
+      <a href="https://github.com/" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 hover:text-[#1f2a1d] transition-colors"><i data-lucide="github" class="w-4 h-4"></i> GitHub</a>
+      <a href="https://dribbble.com/" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 hover:text-[#1f2a1d] transition-colors"><i data-lucide="dribbble" class="w-4 h-4"></i> Dribbble</a>
+    </div>
+  </div>
+  </div>
+
+  <footer class="relative z-10 mt-24 border-t border-[#1f2a1d]/10 pt-6 pb-2 text-center text-xs text-[#4b5b47]">
+    <p>© <span id="year"></span> Riddhibrata · Designed as a journey, built with care.</p>
+    <a href="#top" class="inline-flex items-center gap-1.5 mt-3 font-semibold text-[#336443] hover:opacity-80 transition-opacity">
+      <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i> Back to the bridge
+    </a>
+  </footer>
+</section>
+</main>
+
+<script>
+  // Render lucide icons
+  lucide.createIcons();
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  /* ---------------------------------------------------------
+     Boomerang video background (unchanged from original hero)
+     Captures frames while the video plays once, then loops
+     them forward/backward on a canvas at 30fps.
+  --------------------------------------------------------- */
+  (function () {
+    const BG_VIDEO =
+      'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260511_131941_d136af49-e243-493a-be14-6ff3f24e09e6.mp4';
+    const video = document.getElementById('bg-video');
+    const canvas = document.getElementById('bg-canvas');
+    if (!video || !canvas) return;
+
+    video.src = BG_VIDEO;
+
+    const frames = [];
+    let capturing = true;
+    let lastTime = -1;
+    const MAX_WIDTH = 960;
+
+    function captureFrame() {
+      if (!capturing || video.readyState < 2) return;
+      if (video.currentTime === lastTime) return;
+      lastTime = video.currentTime;
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+      if (!vw || !vh) return;
+      const scale = Math.min(1, MAX_WIDTH / vw);
+      const w = Math.round(vw * scale);
+      const h = Math.round(vh * scale);
+      const c = document.createElement('canvas');
+      c.width = w;
+      c.height = h;
+      const ctx = c.getContext('2d');
+      if (!ctx) return;
+      try {
+        ctx.drawImage(video, 0, 0, w, h);
+        frames.push(c);
+      } catch (e) {
+        // Cross-origin taint or decode error — skip this frame.
+      }
+    }
+
+    const hasVFC = typeof video.requestVideoFrameCallback === 'function';
+    let rafId = 0;
+
+    function rafLoop() {
+      captureFrame();
+      if (capturing) rafId = requestAnimationFrame(rafLoop);
+    }
+
+    function vfcLoop() {
+      captureFrame();
+      if (capturing && video.requestVideoFrameCallback) {
+        video.requestVideoFrameCallback(vfcLoop);
+      }
+    }
+
+    function onEnded() {
+      capturing = false;
+      if (frames.length > 0) startBoomerang();
+    }
+
+    function onLoaded() {
+      video.play().catch(() => {});
+      if (hasVFC) {
+        video.requestVideoFrameCallback(vfcLoop);
+      } else {
+        rafId = requestAnimationFrame(rafLoop);
+      }
+    }
+
+    video.addEventListener('loadedmetadata', onLoaded);
+    video.addEventListener('ended', onEnded);
+    if (video.readyState >= 1) onLoaded();
+
+    function startBoomerang() {
+      const ctx = canvas.getContext('2d');
+      if (!ctx || frames.length === 0) return;
+      const first = frames[0];
+      canvas.width = first.width;
+      canvas.height = first.height;
+      video.style.display = 'none';
+      canvas.style.display = 'block';
+
+      let index = 0;
+      let direction = 1;
+      let last = performance.now();
+      const interval = 1000 / 30;
+
+      function render(now) {
+        if (now - last >= interval) {
+          last = now;
+          ctx.drawImage(frames[index], 0, 0);
+          index += direction;
+          if (index >= frames.length - 1) {
+            index = frames.length - 1;
+            direction = -1;
+          } else if (index <= 0) {
+            index = 0;
+            direction = 1;
+          }
+        }
+        requestAnimationFrame(render);
+      }
+      requestAnimationFrame(render);
+    }
+  })();
+
+  /* ---------------------------------------------------------
+     THE JOURNEY — GSAP ScrollTrigger choreography
+  --------------------------------------------------------- */
+  (function () {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion || typeof gsap === 'undefined') {
+      document.body.classList.add('no-motion'); // scenes render as composed stills
+      return; // everything stays visible without motion
+    }
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    /* ACT 1 · Fly through the bridge arch.
+       While #journey-wrap (300vh) scrolls, the pinned hero scene
+       scales toward the space beneath the arch, the copy lifts
+       away, a vignette closes in, and warm valley light fades up. */
+    const zoomTl = gsap.timeline({
+      scrollTrigger: {
+        trigger: '#journey-wrap',
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: 0.6,
+      },
+    });
+    zoomTl
+      .to('#hero-copy', { opacity: 0, y: -80, ease: 'power1.in', duration: 0.22 }, 0)
+      .to('#hero-cta',  { opacity: 0, y: 60, ease: 'power1.in', duration: 0.22 }, 0)
+      .to('#hero-hint', { opacity: 0, ease: 'power1.in', duration: 0.15 }, 0)
+      .to('#hero-scene', {
+        scale: 3.4,
+        transformOrigin: '50% 68%', // aim under the arch
+        ease: 'power2.in',
+        duration: 1,
+      }, 0)
+      .to('#arch-vignette', { opacity: 1, ease: 'power1.in', duration: 0.5 }, 0.35)
+      .to('#zoom-overlay', { opacity: 1, ease: 'power1.inOut', duration: 0.35 }, 0.62);
+
+    /* SCENES · each valley's full-bleed photo backdrop.
+       Dissolves in as the section arrives, then slowly zooms
+       (Ken Burns — alternating in/out per valley) while you read. */
+    gsap.utils.toArray('.scene-img').forEach((img) => {
+      const section = img.closest('section');
+      const zoomIn = img.dataset.zoom === 'in';
+      // Dissolve in as the valley enters the frame
+      gsap.fromTo(img,
+        { opacity: 0.1 },
+        {
+          opacity: 1,
+          ease: 'power1.out',
+          scrollTrigger: { trigger: section, start: 'top 95%', end: 'top 20%', scrub: 0.6 },
+        }
+      );
+      // Ken Burns across the whole traversal of the section
+      gsap.fromTo(img,
+        { scale: zoomIn ? 1.02 : 1.3 },
+        {
+          scale: zoomIn ? 1.28 : 1.02,
+          ease: 'none',
+          scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: 0.6 },
+        }
+      );
+    });
+
+    /* Parallax layers — anything with .pxl drifts against scroll,
+       scaled by its data-depth, so ridges and suns feel dimensional. */
+    gsap.utils.toArray('.pxl').forEach((el) => {
+      const depth = parseFloat(el.dataset.depth || '0.2');
+      gsap.fromTo(
+        el,
+        { yPercent: depth * 45 },
+        {
+          yPercent: -depth * 45,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: el.closest('section'),
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: true,
+          },
+        }
+      );
+    });
+
+    /* Section content reveals — fade-up as each block enters. */
+    gsap.utils.toArray('.reveal').forEach((el) => {
+      gsap.fromTo(
+        el,
+        { opacity: 0, y: 48 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.9,
+          ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 85%' },
+        }
+      );
+    });
+
+    /* Process trail — the dashed path draws itself as you walk it. */
+    const trail = document.getElementById('trail-path');
+    if (trail) {
+      const len = trail.getTotalLength();
+      gsap.set(trail, { strokeDasharray: len, strokeDashoffset: len });
+      gsap.to(trail, {
+        strokeDashoffset: 0,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '#process',
+          start: 'top 60%',
+          end: 'bottom 80%',
+          scrub: 1,
+        },
+      });
+    }
+
+    /* Navbar — gain a soft backdrop once past the hero. */
+    ScrollTrigger.create({
+      trigger: '#about',
+      start: 'top 80px',
+      onEnter: () => document.getElementById('site-nav').classList.add('bg-[#f2efe6]/80', 'backdrop-blur-md', 'shadow-sm'),
+      onLeaveBack: () => document.getElementById('site-nav').classList.remove('bg-[#f2efe6]/80', 'backdrop-blur-md', 'shadow-sm'),
+    });
+  })();
+
+  /* ---------------------------------------------------------
+     Mobile menu (unchanged behaviour from original)
+  --------------------------------------------------------- */
+  (function () {
+    let menuOpen = false;
+    const menuBtn = document.getElementById('menu-btn');
+    const menuIcon = document.getElementById('icon-menu');
+    const xIcon = document.getElementById('icon-x');
+    const overlay = document.getElementById('mobile-overlay');
+    const drawer = document.getElementById('mobile-drawer');
+    const navLinkEls = document.querySelectorAll('.mobile-nav-link');
+    const ctaGroup = document.getElementById('mobile-cta-group');
+
+    function setMenu(open) {
+      menuOpen = open;
+      document.body.style.overflow = open ? 'hidden' : '';
+      menuBtn.setAttribute('aria-expanded', String(open));
+      menuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+
+      if (open) {
+        menuIcon.classList.remove('opacity-100', 'rotate-0', 'scale-100');
+        menuIcon.classList.add('opacity-0', 'rotate-90', 'scale-50');
+        xIcon.classList.remove('opacity-0', '-rotate-90', 'scale-50');
+        xIcon.classList.add('opacity-100', 'rotate-0', 'scale-100');
+
+        overlay.classList.remove('opacity-0', 'pointer-events-none');
+        overlay.classList.add('opacity-100', 'pointer-events-auto');
+
+        drawer.classList.remove('translate-x-full');
+        drawer.classList.add('translate-x-0');
+
+        navLinkEls.forEach((el, i) => {
+          el.style.transitionDelay = 150 + i * 70 + 'ms';
+          el.classList.remove('translate-x-8', 'opacity-0');
+          el.classList.add('translate-x-0', 'opacity-100');
+        });
+
+        ctaGroup.style.transitionDelay = '400ms';
+        ctaGroup.classList.remove('translate-x-8', 'opacity-0');
+        ctaGroup.classList.add('translate-x-0', 'opacity-100');
+      } else {
+        menuIcon.classList.remove('opacity-0', 'rotate-90', 'scale-50');
+        menuIcon.classList.add('opacity-100', 'rotate-0', 'scale-100');
+        xIcon.classList.remove('opacity-100', 'rotate-0', 'scale-100');
+        xIcon.classList.add('opacity-0', '-rotate-90', 'scale-50');
+
+        overlay.classList.remove('opacity-100', 'pointer-events-auto');
+        overlay.classList.add('opacity-0', 'pointer-events-none');
+
+        drawer.classList.remove('translate-x-0');
+        drawer.classList.add('translate-x-full');
+
+        navLinkEls.forEach((el) => {
+          el.style.transitionDelay = '0ms';
+          el.classList.remove('translate-x-0', 'opacity-100');
+          el.classList.add('translate-x-8', 'opacity-0');
+        });
+
+        ctaGroup.style.transitionDelay = '0ms';
+        ctaGroup.classList.remove('translate-x-0', 'opacity-100');
+        ctaGroup.classList.add('translate-x-8', 'opacity-0');
+      }
+    }
+
+    menuBtn.addEventListener('click', () => setMenu(!menuOpen));
+    overlay.addEventListener('click', () => setMenu(false));
+    navLinkEls.forEach((el) => el.addEventListener('click', () => setMenu(false)));
+  })();
+</script>
+</body>
+</html>
